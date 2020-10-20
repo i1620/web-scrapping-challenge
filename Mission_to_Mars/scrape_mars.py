@@ -4,10 +4,15 @@ import pandas as pd
 from bs4 import BeautifulSoup as bs
 from splinter import Browser
 
-def scrape():
+def init_browser():
+    
 #Scraping All Data
     executable_path = {'executable_path': '/usr/local/bin/chromedriver'}
-    browser = Browser('chrome', **executable_path, headless=False)
+    return Browser("chrome", **executable_path, headless=False)
+
+
+def scrape():
+    browser = init_browser()
 
 
 # ## NASA Mars News
@@ -15,13 +20,18 @@ def scrape():
     browser.visit(news_url)
     html = browser.html
 
+    time.sleep(1)
+
     soup = bs(html, "html.parser")
 
-    article = soup.find("div", class_='list_text')
-    news_title = article.find("div", class_="content_title").text
-    news_p = article.find("div", class_ ="article_teaser_body").text
-    print(news_title)
-    print(news_p)
+    #article = soup.find("div", class_='list_text')
+    #news_title = article.find("div", class_="content_title").text
+    #news_p = article.find("div", class_ ="article_teaser_body").text
+
+    article = soup.select_one("ul.item_list li.slide")
+    news_title = article.find("div", class_="content_title").get_text()
+    news_p = article.find("div", class_ ="article_teaser_body").get_text()
+
 
 
 # ## JPL Mars Space Images
@@ -29,29 +39,43 @@ def scrape():
     browser.visit(url)
     img_html = browser.html
 
+    time.sleep(1)
+
     soup = bs(img_html, 'html.parser')
     featured_image_url  = soup.find('article')['style'].replace('background-image: url(','').replace(');', '')[1:-1]
     featured_image_url = 'https://www.jpl.nasa.gov' + featured_image_url
 
-    print(featured_image_url)
-
 
 # ## Mars Facts
 
-    facts_url = "https://space-facts.com/mars/"
-    browser.visit(facts_url)
-    html = browser.html
+    #facts_url = "https://space-facts.com/mars/"
+    #browser.visit(facts_url)
+    #html = browser.html
 
-    table = pd.read_html(facts_url)
-    mars_facts = table[2]
-    mars_facts
+    #time.sleep(1)
 
-    mars_facts.columns = ['Description','Value']
+    #table = pd.read_html(facts_url)
+    #mars_facts = table[2]
+    #mars_facts
 
-    mars_facts.set_index('Description', inplace=True)
-    mars_facts
+    #mars_facts.columns = ['Description','Value']
 
-    mars_facts.to_html('table.html')
+    #mars_facts.set_index('Description', inplace=True)
+    #mars_facts
+
+    #mars_facts.to_html('index.html')
+
+    # ## Mars Facts
+    try:
+        facts_url = 'https://space-facts.com/mars/'
+        browser.visit(facts_url)
+        html = browser.html
+        mars_table = pd.read_html('facts_url')[2]
+    except BaseException:
+        return None
+    mars_table.columns = ['Description', 'Value']
+    mars_table.set_index('Description', inplace=True)
+    mars_facts = mars_table.to_html(classes="table table-striped")
 
 
 # ## Mars Hemispheres
@@ -59,6 +83,8 @@ def scrape():
     hemispheres_url = "https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars"
     browser.visit(hemispheres_url)
     html = browser.html
+
+    time.sleep(1)
 
     soup = bs(html, "html.parser")
 
@@ -79,6 +105,22 @@ def scrape():
         image_url = downloads.find("a")["href"]
         hemisphere_image_urls.append({"title": title, "img_url": image_url})
 
-    print(hemisphere_image_urls)
 
-# scrape()
+# Store in a Dictionary
+    mars_data = {
+        "news_title": news_title,
+        "news_p": news_p,
+        "featured_image_url": featured_image_url,
+        "mars_facts": mars_facts,
+        "hemisphere_image_urls": hemisphere_image_urls
+    }
+
+    # Close the browser after scraping
+    browser.quit()
+
+    # Return results
+    return mars_data
+
+
+if __name__ == '__main__':
+    scrape()
