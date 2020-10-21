@@ -48,34 +48,11 @@ def scrape():
 
 # ## Mars Facts
 
-    #facts_url = "https://space-facts.com/mars/"
-    #browser.visit(facts_url)
-    #html = browser.html
-
-    #time.sleep(1)
-
-    #table = pd.read_html(facts_url)
-    #mars_facts = table[2]
-    #mars_facts
-
-    #mars_facts.columns = ['Description','Value']
-
-    #mars_facts.set_index('Description', inplace=True)
-    #mars_facts
-
-    #mars_facts.to_html('index.html')
-
-    # ## Mars Facts
-    try:
-        facts_url = 'https://space-facts.com/mars/'
-        browser.visit(facts_url)
-        html = browser.html
-        mars_table = pd.read_html('facts_url')[2]
-    except BaseException:
-        return None
-    mars_table.columns = ['Description', 'Value']
-    mars_table.set_index('Description', inplace=True)
-    mars_facts = mars_table.to_html(classes="table table-striped")
+    url_facts = "https://space-facts.com/mars/"
+    tables = pd.read_html(url_facts)[0]
+    tables.columns = ['Description', 'Value']
+    tables.set_index('Description', inplace=True)
+    mars_facts = tables.to_html()
 
 
 # ## Mars Hemispheres
